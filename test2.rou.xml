@@ -1,0 +1,11 @@
+<routes>
+	<vType id="car" length="5" maxSpeed="50" accel="2.6" decel="4.5" speedDev="0.2" sigma="0.2"/>
+	<flow id="car1" type="car" from="topleftD" to="bottomrightU" begin="0" end="100" number="20"/>
+	<flow id="car2" type="car" from="toprightD" to="bottomleftU" begin="0" end="100" number="20"/>
+	<flow id="car3" type="car" from="bottomleftU" to="toprightD" begin="0" end="100" number="20"/>
+	<flow id="car4" type="car" from="bottomrightU" to="topleftD" begin="0" end="100" number="20"/>
+	<flow id="car5" type="car" from="topleftR" to="bottomrightL" begin="0" end="100" number="20"/>
+	<flow id="car6" type="car" from="toprightL" to="bottomleftR" begin="0" end="100" number="20"/>
+	<flow id="car7" type="car" from="bottomleftR" to="toprightL" begin="0" end="100" number="20"/>
+	<flow id="car8" type="car" from="bottomrightL" to="topleftR" begin="300" end="400" number="20"/>
+</routes>
