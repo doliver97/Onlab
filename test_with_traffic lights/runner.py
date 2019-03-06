@@ -8,12 +8,6 @@
 # SPDX-License-Identifier: EPL-2.0
 
 # @file	runner.py
-# @author  Lena Kalleske
-# @author  Daniel Krajzewicz
-# @author  Michael Behrisch
-# @author  Jakob Erdmann
-# @date	2009-03-26
-# @version $Id$
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -36,11 +30,17 @@ import traci  # noqa
 ############################################### MY FUNCTIONS
 
 def getNotInternalEdges(edgeIDs): #internal edges start with ':'
-	notInternalEdgeIDs = ();
+	notInternalEdgeIDs = ()
 	for edgeID in edgeIDs:
 		if(edgeID[0]!=':'):
 			notInternalEdgeIDs = notInternalEdgeIDs + (edgeID,)
 	return notInternalEdgeIDs
+
+def getMeanSpeeds(edgeIDs):
+	meanSpeeds = ()
+	for edgeID in edgeIDs:
+		meanSpeeds = meanSpeeds + (traci.edge.getLastStepMeanSpeed(edgeID),) # when empty, returns with maximum allowed speed
+	return meanSpeeds
 
 ############################################### END OF MY FUNCTIONS
 
@@ -55,7 +55,10 @@ def run():
 	while traci.simulation.getMinExpectedNumber() > 0:
 		traci.simulationStep()
 		######################################################### CODE START
-		
+		meanSpeeds = getMeanSpeeds(notInternals)
+		print("Step: ", step)
+		for speed in meanSpeeds:
+			print(speed)
 		######################################################### CODE END
 		step += 1
 	traci.close()
