@@ -1,3 +1,4 @@
+Input file: test2.net.xml
 Number_of_car_types: 3
 Length: 3 9
 Max_speed: 40 60

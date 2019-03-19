@@ -1,0 +1,10 @@
+Input_file: simplified_handmod.net.xml
+Number_of_car_types: 3
+Length: 3 9
+Max_speed: 40 60
+Acceleration: 2.0 3.0
+Deceleration: 4.0 6.0
+Speed_dev: 0.2 0.2
+Sigma: 0.1 0.3
+Number_of_cars: 200
+Time: 200
