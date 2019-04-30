@@ -61,7 +61,6 @@ def edgeEmptySpeed(net,edge):
 def edgeEmptyTripTime(net,edge):
 	return edgeLength(net,edge)/edgeEmptySpeed(net,edge)
 
-#eWA's dimension is m/s
 def edgeTripTime(net,edge,eWA):
 	return edgeLength(net,edge)/eWA[edge]
 
@@ -72,10 +71,17 @@ def edgeWeightAverages(edgeWeights):
 		eWA[eW] = sum(edgeWeights[eW])/len(edgeWeights[eW])
 	return eWA
 
-def updateEdgeWeights(edgeWeights):
+def updateEdgeWeights(net, edgeWeights):
 	for eW in edgeWeights:
 		del edgeWeights[eW][0]
-		edgeWeights[eW].append(traci.edge.getLastStepMeanSpeed(eW))
+
+		#do not divide with zero
+		if traci.edge.getLastStepMeanSpeed(eW) == 0:
+			lastMeanSpeed = 0.1
+		else:
+			lastMeanSpeed = traci.edge.getLastStepMeanSpeed(eW)
+			
+		edgeWeights[eW].append(edgeLength(net,eW)/lastMeanSpeed)
 
 # use: startEdge, endEdge = randomTrip(edges)
 # def randomTrip(net,edges):	
@@ -180,7 +186,7 @@ def run():
 	net = sumolib.net.readNet('patched.net.xml')
 
 	# fill weights with travel times of empty map
-	edgeWeights = {} # a dictionary, containing weight value for each edge key 
+	edgeWeights = {} # a dictionary, containing weight value (time) for each edge key 
 	for e in edges:
 		weights = []
 		for x in range(weightCacheSize):
@@ -192,7 +198,7 @@ def run():
 	while traci.simulation.getMinExpectedNumber() > 0:
 		traci.simulationStep()
 		######################################################### CODE START
-		updateEdgeWeights(edgeWeights)
+		updateEdgeWeights(net, edgeWeights)
 		eWA = edgeWeightAverages(edgeWeights)
 
 		# set route for loaded vehicles
