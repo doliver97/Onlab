@@ -166,6 +166,7 @@ def Dijkstra(net, edges, startID, endID,eWA):
 def writeJSON(step,outfile,edgeWeightAverages):
 	record = {step : edgeWeightAverages}
 	json.dump(record,outfile,indent=4,separators=(',', ': '))
+	outfile.write(",")
 
 ############################################### END OF MY FUNCTIONS
 
@@ -186,6 +187,7 @@ def run():
 			weights.append(edgeEmptyTripTime(net,e))
 		edgeWeights[e] = weights
 	outfile = open("outputData.json","w")
+	outfile.write('{\n"root":[')
 	################################### INIT END
 	while traci.simulation.getMinExpectedNumber() > 0:
 		traci.simulationStep()
@@ -207,6 +209,7 @@ def run():
 		######################################################### CODE END
 		step += 1
 	traci.close()
+	outfile.write("]}")
 	outfile.close()
 	sys.stdout.flush()
 
