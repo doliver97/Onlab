@@ -78,14 +78,19 @@ def updateEdgeWeights(edgeWeights):
 		edgeWeights[eW].append(traci.edge.getLastStepMeanSpeed(eW))
 
 # use: startEdge, endEdge = randomTrip(edges)
-def randomTrip(net,edges):	
-	startEdge = random.sample(edges,1)
-	endEdge = random.sample(edges,1)
-	while not isCarAllowed(net,net.getEdge(startEdge[0])) or not isCarAllowed(net,net.getEdge(endEdge[0])):
-		startEdge = random.sample(edges,1)
-		endEdge = random.sample(edges,1)
-	return startEdge[0], endEdge[0]
+# def randomTrip(net,edges):	
+# 	startEdge = random.sample(edges,1)
+# 	endEdge = random.sample(edges,1)
+# 	while not isCarAllowed(net,net.getEdge(startEdge[0])) or not isCarAllowed(net,net.getEdge(endEdge[0])):
+# 		startEdge = random.sample(edges,1)
+# 		endEdge = random.sample(edges,1)
+# 	return startEdge[0], endEdge[0]
     
+#use startEdge, endEdge = getEndpoints(vehicleID)	
+def getEndpoints(vehicleID):
+	edgeList = traci.vehicle.getRoute(vehicleID)
+	return edgeList[0], edgeList[-1]
+
 def isCarAllowed(net,edge):
 	lanes = edge.getLanes()
 
@@ -193,8 +198,9 @@ def run():
 		for lv in departedVehicles:
 			edgeList = None
 			while edgeList == None:
-				startEdge, endEdge = randomTrip(net,edges)
-				startEdge = traci.vehicle.getRoadID(lv) # start from current position
+				#startEdge, endEdge = randomTrip(net,edges)
+				startEdge, endEdge = getEndpoints(lv)
+				#startEdge = traci.vehicle.getRoadID(lv) # start from current position
 				edgeList = Dijkstra(net,edges,startEdge,endEdge,eWA)
 			traci.vehicle.setRoute(lv,edgeList)
 		writeJSON(step,outfile,eWA)
