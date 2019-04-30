@@ -17,6 +17,7 @@ import sys
 import optparse
 import random
 import sumolib
+import json
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
@@ -157,24 +158,29 @@ def Dijkstra(net, edges, startID, endID,eWA):
 	else:
 		return None
 
+def writeJSON(step,outfile,edgeWeightAverages):
+	record = {step : edgeWeightAverages}
+	json.dump(record,outfile,indent=4,separators=(',', ': '))
+
 ############################################### END OF MY FUNCTIONS
 
 def run():
 	"""execute the TraCI control loop"""
 	step = 0
 	################################### INIT
-	weightCacheSize = 10 #5*60 # Calculate edge weights averaging the last 5 minutes
+	weightCacheSize = 5 #5*60 # Calculate edge weights averaging the last x seconds
 	idlist = traci.edge.getIDList()
 	edges = getNotInternalEdges(idlist)
 	net = sumolib.net.readNet('patched.net.xml')
 
 	# fill weights with travel times of empty map
-	edgeWeights = {}
+	edgeWeights = {} # a dictionary, containing weight value for each edge key 
 	for e in edges:
 		weights = []
 		for x in range(weightCacheSize):
 			weights.append(edgeEmptyTripTime(net,e))
 		edgeWeights[e] = weights
+	outfile = open("outputData.json","w")
 	################################### INIT END
 	while traci.simulation.getMinExpectedNumber() > 0:
 		traci.simulationStep()
@@ -191,9 +197,11 @@ def run():
 				startEdge = traci.vehicle.getRoadID(lv) # start from current position
 				edgeList = Dijkstra(net,edges,startEdge,endEdge,eWA)
 			traci.vehicle.setRoute(lv,edgeList)
+		writeJSON(step,outfile,eWA)
 		######################################################### CODE END
 		step += 1
 	traci.close()
+	outfile.close()
 	sys.stdout.flush()
 
 
