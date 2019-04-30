@@ -1,0 +1,12 @@
+cmd from th folder of files:
+netconvert --sumo-net-file osm.net.xml --edge-files patch.edg.xml -o patched.net.xml
+Type - action:
+https://sumo.dlr.de/wiki/SUMO_edge_type_file
+drop everything except:
+highway.motorway
+.motorway_link
+.trunk
+.trunk_link
+.primary
+.primary_link
+((maybe .secondary))
