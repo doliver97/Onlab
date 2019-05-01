@@ -19,6 +19,10 @@ import random
 import sumolib
 import json
 
+#HIPERPARAMETERS
+dataCache = 5 # data will consist averaging the last "dataCache" measurements
+timeStep = 10 # traffic is measured in every "timeStep" seconds
+
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
 	tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -82,16 +86,7 @@ def updateEdgeWeights(net, edgeWeights):
 			lastMeanSpeed = traci.edge.getLastStepMeanSpeed(eW)
 			
 		edgeWeights[eW].append(edgeLength(net,eW)/lastMeanSpeed)
-
-# use: startEdge, endEdge = randomTrip(edges)
-# def randomTrip(net,edges):	
-# 	startEdge = random.sample(edges,1)
-# 	endEdge = random.sample(edges,1)
-# 	while not isCarAllowed(net,net.getEdge(startEdge[0])) or not isCarAllowed(net,net.getEdge(endEdge[0])):
-# 		startEdge = random.sample(edges,1)
-# 		endEdge = random.sample(edges,1)
-# 	return startEdge[0], endEdge[0]
-    
+   
 #use startEdge, endEdge = getEndpoints(vehicleID)	
 def getEndpoints(vehicleID):
 	edgeList = traci.vehicle.getRoute(vehicleID)
@@ -180,7 +175,6 @@ def run():
 	"""execute the TraCI control loop"""
 	step = 0
 	################################### INIT
-	weightCacheSize = 5 #5*60 # Calculate edge weights averaging the last x seconds
 	idlist = traci.edge.getIDList()
 	edges = getNotInternalEdges(idlist)
 	net = sumolib.net.readNet('patched.net.xml')
@@ -189,7 +183,7 @@ def run():
 	edgeWeights = {} # a dictionary, containing weight value (time) for each edge key 
 	for e in edges:
 		weights = []
-		for x in range(weightCacheSize):
+		for x in range(dataCache):
 			weights.append(edgeEmptyTripTime(net,e))
 		edgeWeights[e] = weights
 	outfile = open("outputData.json","w")
@@ -198,20 +192,22 @@ def run():
 	while traci.simulation.getMinExpectedNumber() > 0:
 		traci.simulationStep()
 		######################################################### CODE START
-		updateEdgeWeights(net, edgeWeights)
-		eWA = edgeWeightAverages(edgeWeights)
+
+		# measuring traffic on edges 
+		if step%timeStep == 0:
+			updateEdgeWeights(net, edgeWeights)
+			eWA = edgeWeightAverages(edgeWeights)
+			writeJSON(step,outfile,eWA)
 
 		# set route for loaded vehicles
 		departedVehicles = vehiclesIn()
 		for lv in departedVehicles:
 			edgeList = None
 			while edgeList == None:
-				#startEdge, endEdge = randomTrip(net,edges)
 				startEdge, endEdge = getEndpoints(lv)
-				#startEdge = traci.vehicle.getRoadID(lv) # start from current position
 				edgeList = Dijkstra(net,edges,startEdge,endEdge,eWA)
 			traci.vehicle.setRoute(lv,edgeList)
-		writeJSON(step,outfile,eWA)
+			
 		######################################################### CODE END
 		step += 1
 	traci.close()
