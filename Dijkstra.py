@@ -18,6 +18,7 @@ import optparse
 import random
 import sumolib
 import json
+import datetime
 
 #HIPERPARAMETERS
 dataCache = 5 # data will consist averaging the last "dataCache" measurements
@@ -175,6 +176,7 @@ def run():
 	"""execute the TraCI control loop"""
 	step = 0
 	################################### INIT
+	print(str(datetime.datetime.now().time()) + " INIT started")
 	idlist = traci.edge.getIDList()
 	edges = getNotInternalEdges(idlist)
 	net = sumolib.net.readNet('patched.net.xml')
@@ -183,8 +185,9 @@ def run():
 	edgeWeights = {} # a dictionary, containing weight value (time) for each edge key 
 	for e in edges:
 		weights = []
+		emptyTripTime = edgeEmptyTripTime(net,e)
 		for x in range(dataCache):
-			weights.append(edgeEmptyTripTime(net,e))
+			weights.append(emptyTripTime)
 		edgeWeights[e] = weights
 	outfile = open("outputData.json","w")
 	outfile.write('{\n"root":[')
@@ -193,8 +196,9 @@ def run():
 		traci.simulationStep()
 		######################################################### CODE START
 
-		# measuring traffic on edges 
+		# measuring traffic on edges 		
 		if step%timeStep == 0:
+			print(str(datetime.datetime.now().time()) + " Edge measurement started")
 			updateEdgeWeights(net, edgeWeights)
 			eWA = edgeWeightAverages(edgeWeights)
 			writeJSON(step,outfile,eWA)
@@ -202,6 +206,7 @@ def run():
 		# set route for loaded vehicles
 		departedVehicles = vehiclesIn()
 		for lv in departedVehicles:
+			print(str(datetime.datetime.now().time()) + " Setting route for " + lv)
 			edgeList = None
 			while edgeList == None:
 				startEdge, endEdge = getEndpoints(lv)
