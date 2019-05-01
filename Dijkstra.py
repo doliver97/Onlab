@@ -21,6 +21,8 @@ import json
 import datetime
 
 #HIPERPARAMETERS
+sumocfg = "osm_koszeg.sumocfg" # this simulation will be loaded
+netfile = "osm_koszeg.net.xml"
 dataCache = 5 # data will consist averaging the last "dataCache" measurements
 timeStep = 10 # traffic is measured in every "timeStep" seconds
 
@@ -81,8 +83,8 @@ def updateEdgeWeights(net, edgeWeights):
 		del edgeWeights[eW][0]
 
 		#do not divide with zero
-		if traci.edge.getLastStepMeanSpeed(eW) == 0:
-			lastMeanSpeed = 0.1
+		if traci.edge.getLastStepMeanSpeed(eW) < 1:
+			lastMeanSpeed = 1 # instead of standing traffic, we will count with walking speed traffic
 		else:
 			lastMeanSpeed = traci.edge.getLastStepMeanSpeed(eW)
 			
@@ -179,7 +181,7 @@ def run():
 	print(str(datetime.datetime.now().time()) + " INIT started")
 	idlist = traci.edge.getIDList()
 	edges = getNotInternalEdges(idlist)
-	net = sumolib.net.readNet('patched.net.xml')
+	net = sumolib.net.readNet(netfile)
 
 	# fill weights with travel times of empty map
 	edgeWeights = {} # a dictionary, containing weight value (time) for each edge key 
@@ -216,8 +218,14 @@ def run():
 		######################################################### CODE END
 		step += 1
 	traci.close()
+
+	#format json
+	outfile.seek(0, os.SEEK_END)
+	outfile.seek(outfile.tell()-1, os.SEEK_SET)
+	outfile.truncate() #remove last comma
 	outfile.write("]}")
 	outfile.close()
+
 	sys.stdout.flush()
 
 
@@ -242,5 +250,5 @@ if __name__ == "__main__":
 
 	# this is the normal way of using traci. sumo is started as a
 	# subprocess and then the python script connects and runs
-	traci.start([sumoBinary, "-c", "osm.sumocfg"]) #################### SET THE RIGHT FILE
+	traci.start([sumoBinary, "-c", sumocfg]) #################### SET THE RIGHT FILE
 	run()
