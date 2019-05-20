@@ -7,7 +7,10 @@ y = [] # y axis values
 #Receiving this edge's data
 #edgeName = "654591108#2" 
 #edgeName = "-435059227"
-edgeName = "-169375096#1"
+#edgeName = "-169375096#1"
+
+edgeName = "-72675518#0" #This looks good
+#edgeName = "-366892712"
 
 #load and deserialize json
 with open('outputData.json') as json_file:  
